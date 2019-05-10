@@ -1016,7 +1016,8 @@ def upload_table_api():
 
 	# Read data
 	data = request.json
-	data['expression'] = json.loads(data['expression'])
+	if not isinstance(data['expression'], dict):
+		data['expression'] = json.loads(data['expression'])
 
 	# Get UID
 	dataset_uid = TM.getUID(engine)
