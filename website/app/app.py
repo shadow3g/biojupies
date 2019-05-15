@@ -17,7 +17,7 @@
 ########## 1. Load libraries
 #############################################
 ##### 1. Flask modules #####
-from flask import Flask, request, render_template, Response, redirect, url_for, abort, flash, jsonify
+from flask import Flask, request, render_template, Response, redirect, url_for, abort, flash, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
 # from flask_dance.contrib.github import make_github_blueprint, github
 from flask_dance.contrib.google import make_google_blueprint, google
@@ -218,6 +218,10 @@ def logout():
 db.init_app(app)
 login_manager.init_app(app)
 
+# Maintenance advisory
+@app.context_processor
+def inject_stage_and_region():
+    return dict(UNDER_MAINTENANCE=os.environ.get('UNDER_MAINTENANCE') == 'True')
 # Create
 # with app.app_context():
 # 	db.create_all()
