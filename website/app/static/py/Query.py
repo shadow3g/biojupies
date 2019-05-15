@@ -85,7 +85,7 @@ def searchDatasets(session, tables, min_samples, max_samples, organisms, sortby=
                     ))
 
     # Group query
-    db_query = db_query.group_by(tables['dataset_v6'].columns['dataset_accession']) \
+    db_query = db_query.group_by(tables['dataset_v6'].columns['dataset_accession'], tables['platform_v6'].columns['id']) \
                 .having(and_( \
                     tables['platform_v6'].columns['organism'].in_(organisms), \
                     func.count(tables['sample_v6'].columns['sample_accession']) >= min_samples,
