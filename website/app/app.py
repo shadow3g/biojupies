@@ -1400,8 +1400,7 @@ def example():
 
 	# Select dataset
 	dataset_accession = 'GSE88741'
-	dataset = pd.read_sql_query('SELECT platform_accession, dataset_accession, dataset_title, summary, date, count(*) AS nr_samples, organism FROM dataset_v6 d LEFT JOIN sample_v6 s ON d.id=s.dataset_fk LEFT JOIN platform_v6 p ON p.id=s.platform_fk WHERE dataset_accession = "{}"'.format(dataset_accession), engine).drop_duplicates().T.to_dict()[0]
-	# dataset['date'] = dataset['date'].strftime('%b %d, %Y')
+	dataset = Q.searchDatasets(session=Session(), tables=tables, min_samples=0, max_samples=500, organisms=['Human', 'Mouse'], sortby='new', q=dataset_accession).to_dict(orient='records')[0]
 	return render_template('analyze/example.html', dataset=dataset)
 
 ##################################################
