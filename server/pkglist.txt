@@ -9,3 +9,6 @@ python3-setuptools
 nginx
 uwsgi-core
 uwsgi-plugin-python3
+wget
+mysql-client
+libssl-dev

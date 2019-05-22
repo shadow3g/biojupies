@@ -21,4 +21,4 @@ dbinstance.txt
 pass.txt
 upload_db.py
 env.list
-docker_run.sh
+docker.sh
