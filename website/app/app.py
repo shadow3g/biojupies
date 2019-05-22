@@ -221,7 +221,7 @@ login_manager.init_app(app)
 # Maintenance advisory
 @app.context_processor
 def inject_stage_and_region():
-    return dict(UNDER_MAINTENANCE=os.environ.get('UNDER_MAINTENANCE') == 'True')
+    return dict(UNDER_MAINTENANCE=os.environ.get('UNDER_MAINTENANCE') == 'True', NOTEBOOK_GENERATOR_SERVER_BASE_URL=os.environ.get('NOTEBOOK_GENERATOR_SERVER_BASE_URL'))
 # Create
 # with app.app_context():
 # 	db.create_all()
@@ -416,7 +416,7 @@ def add_tools():
 
 		# Version
 		dev_str = '-dev' if dev else ''
-		req =  urllib.request.Request('http://amp.pharm.mssm.edu/notebook-generator-server{}/api/version'.format(dev_str)) # this will make the method "POST"
+		req =  urllib.request.Request('{NOTEBOOK_GENERATOR_SERVER_BASE_URL}/api/version'.format(**os.environ)) # this will make the method "POST"
 		version = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))['latest_library_version']
 		
 		# Return result
@@ -601,8 +601,7 @@ def generate_notebook():
 		tags = tags if isinstance(tags, list) else [tags]
 
 		# Version
-		dev_str = '-dev' if dev else ''
-		req =  urllib.request.Request('http://amp.pharm.mssm.edu/notebook-generator-server{}/api/version'.format(dev_str)) # this will make the method "POST"
+		req =  urllib.request.Request('{NOTEBOOK_GENERATOR_SERVER_BASE_URL}/api/version'.format(**os.environ)) # this will make the method "POST"
 		version = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))['latest_library_version']
 
 		# Get source
@@ -633,7 +632,7 @@ def generate_notebook():
 		expected_time = int(np.ceil(np.percentile(wait_times, 90)/60))
 		
 		# Return result
-		return render_template('analyze/results.html', notebook_configuration=json.dumps(c), notebook_configuration_dict=c, selected_tools=selected_tools, dev=dev, expected_time=expected_time)
+		return render_template('analyze/results.html', notebook_configuration=json.dumps(c), notebook_configuration_dict=c, selected_tools=selected_tools, dev=dev, expected_time=expected_time, )
 		# return json.dumps(c)
 
 	# Redirect to analyze page

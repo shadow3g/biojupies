@@ -11781,35 +11781,10 @@
 	<script type="text/javascript">
 	$.ajax({
 		async: true,
-		url: window.location.href.replace('/notebook-generator-server', '/notebook-generator-server/api/generate'),
+		url: window.location.origin+'/api/generate',
 		success: function(data) {
 			$('body').html(data);
 		}
 	})
 	</script>
 </html>
-<!-- 
-
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Notebook Generator Server</title>
-</head>
-<body>
-
-	Generating Notebook...
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script type="text/javascript">
-
-	$.ajax({
-		async: true,
-		url: window.location.href.replace('/notebook-generator-server', '/notebook-generator-server/api/generate'),
-		success: function(data) {
-			$('body').html(data);
-		}
-	})
-
-</script>
-</body>
-</html> -->

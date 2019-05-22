@@ -60,7 +60,6 @@ if os.getenv('SENTRY_DSN'):
 # General
 with open('dev.txt') as openfile:
 	dev = openfile.read() == 'True'
-# entry_point = '/notebook-generator-server'#'/notebook-generator-server-dev' if dev else '/notebook-generator-server'
 app = Flask(__name__, static_url_path='/app/static')
 
 # Database
