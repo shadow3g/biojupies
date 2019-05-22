@@ -7,3 +7,6 @@ nginx
 uwsgi-core
 libpcre3
 libpcre3-dev
+wget
+mysql-client
+libssl-dev

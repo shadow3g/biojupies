@@ -69,7 +69,6 @@ psutil==5.4.3
 pyasn1==0.4.2
 pyasn1-modules==0.2.1
 pycrypto==2.6.1
-pygobject==3.24.1
 PyMySQL==0.8.0
 python-dateutil==2.7.0
 pytz==2018.3
