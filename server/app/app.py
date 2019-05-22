@@ -60,8 +60,8 @@ if os.getenv('SENTRY_DSN'):
 # General
 with open('dev.txt') as openfile:
 	dev = openfile.read() == 'True'
-entry_point = '/notebook-generator-server'#'/notebook-generator-server-dev' if dev else '/notebook-generator-server'
-app = Flask(__name__, static_url_path=os.path.join(entry_point, 'app/static'))
+# entry_point = '/notebook-generator-server'#'/notebook-generator-server-dev' if dev else '/notebook-generator-server'
+app = Flask(__name__, static_url_path='/app/static')
 
 # Database
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQLALCHEMY_DATABASE_URI']
@@ -75,7 +75,7 @@ metadata.reflect(bind=engine)
 tables = metadata.tables
 
 # Cross origin
-CORS(app, resources=r'{}/api/*'.format(entry_point))
+CORS(app, resources=r'/api/*')
 
 # Mail
 mail_settings = {
@@ -90,7 +90,7 @@ mail = Mail(app)
 
 ##### 2. Variables #####
 # Latest library version
-latest_library_version = os.environ.get('LIBRARY_VERSION', 'v1.0.0')
+latest_library_version = os.environ.get('LIBRARY_VERSION', 'v1.1.4')
 
 #######################################################
 #######################################################
@@ -102,15 +102,15 @@ latest_library_version = os.environ.get('LIBRARY_VERSION', 'v1.0.0')
 ########## 1. Home
 #############################################
 
-@app.route(entry_point, methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-	return render_template('index.html')
+	return 'BioJupies Notebook Generator'
 
 #############################################
 ########## 2. Generate API
 #############################################
 
-@app.route(entry_point+'/api/generate', methods=['GET', 'POST'])
+@app.route('/api/generate', methods=['GET', 'POST'])
 def generate():
 
 	# Get tool metadata
@@ -199,7 +199,7 @@ def generate():
 ########## 3. Download
 #############################################
 
-@app.route(entry_point+'/download', methods=['GET', 'POST'])
+@app.route('/download', methods=['GET', 'POST'])
 def download():
 
 	# Load HDF5 File
@@ -226,7 +226,7 @@ def download():
 ########## 4. Download
 #############################################
 
-@app.route(entry_point+'/download_data', methods=['GET', 'POST'])
+@app.route('/download_data', methods=['GET', 'POST'])
 def download_data():
 
 	# Get request data
@@ -278,7 +278,7 @@ def download_data():
 ########## 5. Help
 #############################################
 
-@app.route(entry_point+'/api/help', methods=['POST'])
+@app.route('/api/help', methods=['POST'])
 def help_api():
 
 	# Get request
@@ -328,7 +328,7 @@ def help_api():
 ########## 1. Version API
 #############################################
 
-@app.route(entry_point+'/api/version', methods=['GET', 'POST'])
+@app.route('/api/version', methods=['GET', 'POST'])
 def version():
 	return json.dumps({'latest_library_version': latest_library_version})
 
@@ -336,7 +336,7 @@ def version():
 ########## 2. Samples API
 #############################################
 
-@app.route(entry_point+'/api/samples', methods=['GET', 'POST'])
+@app.route('/api/samples', methods=['GET', 'POST'])
 def samples():
 
 	# Get GSE
@@ -384,7 +384,7 @@ def samples():
 ########## 3. Tools API
 #############################################
 
-@app.route(entry_point+'/api/tools', methods=['GET', 'POST'])
+@app.route('/api/tools', methods=['GET', 'POST'])
 def tools():
 
 	# Get data
