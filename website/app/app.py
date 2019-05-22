@@ -106,7 +106,7 @@ class PrefixMiddleware(object):
 		else:
 			start_response('404', [('Content-Type', 'text/plain')])
 			return ["This url does not belong to the app.".encode()]
-app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=entry_point)
+# app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=entry_point)
 
 # HTTPS fix
 if not os.environ.get('OAUTHLIB_INSECURE_TRANSPORT'):
@@ -115,7 +115,7 @@ if not os.environ.get('OAUTHLIB_INSECURE_TRANSPORT'):
 			environ['wsgi.url_scheme'] = 'https'
 			return wsgi_app(environ, start_response)
 		return wrapper
-	app.wsgi_app = _force_https(app.wsgi_app)
+	# app.wsgi_app = _force_https(app.wsgi_app)
 
 #############################################
 ########## 4. OAuth
