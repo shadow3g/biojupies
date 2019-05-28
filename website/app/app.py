@@ -1312,7 +1312,12 @@ def notebook_generator_server_api(path):
 		result.status_code = r.status_code
 		return result
 	elif path == 'download_data':
-		raise ValueError('under development.')
+		r = requests.post('{NOTEBOOK_GENERATOR_SERVER_BASE_URL}/{path}'.format(**os.environ, **locals()), data=request.form.to_dict())
+		if r.status_code == 200:
+			res = r.json()
+			return Response(res['results'], mimetype="txt", headers={"Content-disposition": "attachment; filename={dataset_title}-{file_label}.txt".format(**res)})
+		else:
+			raise ValueError('Sorry, there has been an error downloading the dataset.')
 	else:
 		raise ValueError('Please specify a valid endpoint.')
 
