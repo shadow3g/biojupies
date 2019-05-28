@@ -264,6 +264,10 @@ def download_data():
 	elif request_data['content'] == 'metadata':
 		results = dataset['sample_metadata']
 
+	# Else
+	else:
+		raise ValueError('Please specify content: "expression" or "metadata".')
+
 	# File label
 	file_label = 'metadata' if request_data['content'] == 'metadata' else normalization_method
 
@@ -271,7 +275,8 @@ def download_data():
 	results_str = results.to_csv(sep='\t')
 
 	# Return
-	return Response(results_str, mimetype="txt", headers={"Content-disposition": "attachment; filename={dataset_title}-{file_label}.txt".format(**locals())})
+	response = json.dumps({'results': results_str, 'dataset_title': dataset_title, 'file_label': file_label})
+	return response
 
 #############################################
 ########## 5. Help
