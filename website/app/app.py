@@ -417,6 +417,7 @@ def add_tools():
 		# Version
 		dev_str = '-dev' if dev else ''
 		req =  urllib.request.Request('{NOTEBOOK_GENERATOR_SERVER_BASE_URL}/api/version'.format(**os.environ)) # this will make the method "POST"
+		# req =  urllib.request.Request(url_for('notebook_generator_server_api', path='api/version', _external=True))
 		version = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))['latest_library_version']
 		
 		# Return result
@@ -1280,6 +1281,34 @@ def upload_reads_api():
 
 	# Return
 	return json.dumps({'result': 'success'})
+
+#############################################
+########## 7. Generate Notebook API
+#############################################
+### Calls the notebook generator server, POSTing JSON.
+### Input: Notebook configuration JSON or help request.
+### Output: JSON with notebook UID and link.
+### Called in: generate_notebook().
+
+@app.route('/notebook_generator_server/<path:path>', methods=['GET', 'POST'])
+def notebook_generator_server_api(path):
+	if path in ['api/generate', 'api/help']:
+		j = request.json
+		r = requests.post('{NOTEBOOK_GENERATOR_SERVER_BASE_URL}/{path}'.format(**os.environ, **locals()), json=j)
+		result = jsonify(r.json())
+		result.status_code = r.status_code 
+		# capture errors for server and extension
+		return result
+	elif path == 'api/version':
+		r = requests.post('{NOTEBOOK_GENERATOR_SERVER_BASE_URL}/{path}'.format(**os.environ, **locals()))
+		result = jsonify(r.json())
+		result.status_code = r.status_code
+		return result
+	elif path == 'download_data':
+		raise ValueError('under development.')
+	else:
+		raise ValueError('Please specify a valid endpoint.')
+
 
 #######################################################
 #######################################################

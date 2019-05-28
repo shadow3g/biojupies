@@ -303,7 +303,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <form id="download-dataset-form" action="{{ NOTEBOOK_GENERATOR_SERVER_BASE_URL }}/download_data" method="post">
+        <form id="download-dataset-form" action="{{ url_for('notebook_generator_server_api', path='download_data', _external=True }}" method="post">
             <input type="hidden" name="uid" value="">
             <input type="hidden" name="source" value="upload">
 
