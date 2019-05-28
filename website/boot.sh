@@ -3,11 +3,23 @@
 root=/biojupies
 user=r
 log=$root/error.log
+sslroot=/ssl
+servername=biojupies.cloud
 
 function setup {
 
 echo "Creating user..." >> $log
 adduser --disabled-password --gecos '' $user >> $log
+
+if [ ! -z "${SSL_CERTIFICATE}" -a ! -z "${SSL_CERTIFICATE_KEY}" ]; then
+    echo "Writing SSL Keys..." >> $log
+    mkdir -p "${sslroot}"
+    echo "${SSL_CERTIFICATE}" | sed 's/;/\n/g' > "${sslroot}/cert.crt"
+    echo "${SSL_CERTIFICATE_KEY}" | sed 's/;/\n/g' > "${sslroot}/cert.key"
+else
+    echo "ERROR: SSL_CERTIFICATE and SSL_CERTIFICATE_KEY were not provided"
+    exit 1
+fi
 
 echo "Writing wsgi.ini..." >> $log
 cat << EOF | tee -a $root/wsgi.ini >> $log
@@ -53,7 +65,21 @@ http {
 					  application/atom+xml;
 
     server {
-        listen 80;
+        listen          80;
+        server_name     $servername;
+        rewrite ^/(.*)  https://\$host/\$1 permanent;
+    }
+    server {
+        listen 443;
+
+        ssl on;
+        ssl_certificate $sslroot/cert.crt;
+        ssl_certificate_key $sslroot/cert.key;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_prefer_server_ciphers on;
+        ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+        include /etc/nginx/mime.types;
         charset utf-8;
         client_max_body_size 30M;
         sendfile on;
