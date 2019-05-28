@@ -64,7 +64,7 @@ if os.getenv('SENTRY_DSN'):
 # General
 with open('dev.txt') as openfile:
 	dev = openfile.read() == 'True'
-entry_point = '/biojupies-dev' if dev else '/biojupies'
+# entry_point = '/biojupies-dev' if dev else '/biojupies'
 app = Flask(__name__, static_url_path='/app/static')
 
 # Database
@@ -245,7 +245,7 @@ def inject_stage_and_region():
 ### Landing page for the website. Links to analyze() endpoint.
 ### Links to: analyze().
 
-@app.route(entry_point)
+# @app.route(entry_point)
 @app.route('/')
 def index():
 
@@ -1427,7 +1427,7 @@ def notebook_api(notebook_uid):
 def help():
 	with open('app/static/help/sections.json') as openfile:
 		categories = json.load(openfile)
-	return render_template('help.html', categories=categories, entry_point=entry_point)
+	return render_template('help.html', categories=categories)
 
 #############################################
 ########## 2. Example Dataset
