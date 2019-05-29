@@ -241,12 +241,25 @@
 
 			// AJAX Request
 			$.ajax({
-				url: "{{ url_for('launch_alignment_api') }}",
-				method: "post",
-				data: settings,
+				async: true,
+				crossDomain: true,
+				processData: false,
+				url: "{{ url_for('launch_alignment_api', _external=True) }}",
+				// url: "https://biojupies.cloud/api/upload/launch_alignment",
+				method: "POST",
+				data: JSON.stringify(settings),
+				headers: {
+					"Content-Type": "application/json",
+					"cache-control": "no-cache"
+				},
+				// contentType: "application/json",
 				dataType: "json",
 				success: function(data) {
-					window.location.href = '{{ url_for("upload_reads", alignment="") }}'+data['alignment_uid'];
+					window.location.href = '{{ url_for("upload_reads", alignment="", _external=True) }}'+data['alignment_uid'];
+				},
+				error: function(err) {
+					console.log(err);
+					window.location.reload();
 				}
 			})
 		}

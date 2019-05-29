@@ -1082,7 +1082,7 @@ def example_table_api():
 def launch_alignment_api():
 
 	# Get form
-	alignment_settings = request.form.to_dict()
+	alignment_settings = request.json
 	# Get sample files
 	if alignment_settings['sequencing-type'] == 'single-end':
 		samples = [{'outname': value.rsplit('.', 2)[0], 'file1': value, 'file2': None} for key, value in alignment_settings.items() if key.startswith('file')]
@@ -1260,6 +1260,7 @@ def upload_reads_api():
 
 	# Get data
 	r = request.json
+	print(r)
 
 	# Open database session
 	session = Session()
@@ -1274,7 +1275,8 @@ def upload_reads_api():
 		# Commit
 		session.commit()
 	except:
-		pass
+		session.rollback()
+		raise ValueError('Sorry, there has been an error uploading the reads to the database.')
 
 	# Close session
 	session.close()
