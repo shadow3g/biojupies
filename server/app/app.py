@@ -17,7 +17,7 @@
 ########## 1. Load libraries
 #############################################
 ##### 1. Flask modules #####
-from flask import Flask, request, render_template, Response, redirect, url_for, jsonify
+from flask import Flask, request, render_template, Response, redirect, url_for, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_mail import Mail, Message
@@ -197,7 +197,7 @@ def generate():
 #############################################
 ########## 3. Download
 #############################################
-
+# unused since biojupies-cloud migration
 @app.route('/download', methods=['GET', 'POST'])
 def download():
 
@@ -429,7 +429,8 @@ def tools():
 #############################################
 @app.errorhandler(404)
 def page_not_found(e):
-    return redirect(url_for('generate'))
+	abort(404)
+    # return redirect(url_for('generate'))
 
 #######################################################
 #######################################################
