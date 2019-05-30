@@ -63,16 +63,31 @@ http {
 					  text/javascript
 					  application/x-javascript
 					  application/atom+xml;
-
     server {
-        listen          80;
-        server_name     $servername;
-        rewrite ^/(.*)  https://\$host/\$1 permanent;
+        listen 80;
+        charset utf-8;
+        client_max_body_size 30M;
+        sendfile on;
+        keepalive_timeout 0;
+        large_client_header_buffers 8 32k;
+        location /static  {
+            alias $root/app/static;
+        }
+        location / {
+            include            /etc/nginx/uwsgi_params;
+            uwsgi_pass         127.0.0.1:8080;
+            proxy_redirect     off;
+            proxy_set_header   Host \$host;
+            proxy_set_header   X-Real-IP \$remote_addr;
+            proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host \$server_name;
+        }
     }
-    server {
-        listen 443;
 
-        ssl on;
+    server {
+        listen 443 default ssl;
+
+        # ssl on;
         ssl_certificate $sslroot/cert.crt;
         ssl_certificate_key $sslroot/cert.key;
         ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
