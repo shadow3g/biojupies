@@ -43,8 +43,8 @@
 			<div class="mt-5 very-small text-center px-6 mx-xl-5 notebook-status regular d-none">
 				
 				<!-- Error Text -->
-				<div id="error_title" class="medium mb-4"></div>
-				<div id="error_subtitle" class="small light mb-4 pb-2"></div>
+				<div id="error_title" class="medium mb-4">Sorry, there has been an error generating the notebook.</div>
+				<div id="error_subtitle" class="small light mb-4 pb-2">This is likely due to high traffic in the notebook generation server. Please try again shortly.</div>
 				<hr width="50%" class="my-4">
 
 				<!-- Options -->
@@ -268,6 +268,12 @@
 
 				// Get response
 				var response = e.responseJSON;
+
+				// Error 503
+				if (e.status === 502) {
+					response['recommend'] = 'retry';
+					response['options'] = ['retry', 'create-new'];
+				}
 
 				// Display error messages
 				$('.notebook-status').toggleClass('d-none');

@@ -1298,8 +1298,12 @@ def notebook_generator_server_api(path):
 		j = request.json
 		r = requests.post('{NOTEBOOK_GENERATOR_SERVER_BASE_URL}/{path}'.format(**os.environ, **locals()), json=j)
 		if '<br><br>' not in r.text:
-			result = jsonify(r.json())
-			result.status_code = r.status_code 
+			if r.status_code == 200:
+				result = jsonify(r.json())
+				result.status_code = r.status_code 
+			else:
+				result = jsonify({})
+				result.status_code = 502
 		else:
 			result = r.text
 		return result
