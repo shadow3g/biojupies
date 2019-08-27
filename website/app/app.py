@@ -21,7 +21,7 @@ from flask import Flask, request, render_template, Response, redirect, url_for, 
 from flask_sqlalchemy import SQLAlchemy
 # from flask_dance.contrib.github import make_github_blueprint, github
 from flask_dance.contrib.google import make_google_blueprint, google
-from flask_dance.consumer.backend.sqla import OAuthConsumerMixin, SQLAlchemyBackend
+from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
 from flask_dance.consumer import oauth_authorized, oauth_error
 from flask_login import (
 	LoginManager, UserMixin, current_user,
@@ -62,9 +62,14 @@ if os.getenv('SENTRY_DSN'):
 	sentry_sdk.init(dsn=os.environ['SENTRY_DSN'], integrations=[FlaskIntegration()])
 
 # General
-with open('dev.txt') as openfile:
-	dev = openfile.read() == 'True'
-# entry_point = '/biojupies-dev' if dev else '/biojupies'
+dev = os.getenv('DEV')
+if dev is None:
+	with open('dev.txt') as openfile:
+		dev = openfile.read() == 'True'
+else:
+	dev = json.loads(dev)
+entry_point = os.getenv('ENTRY_POINT', '/biojupies-dev' if dev else '/biojupies')
+
 app = Flask(__name__, static_url_path='/app/static')
 
 # Database
@@ -106,7 +111,10 @@ class PrefixMiddleware(object):
 		else:
 			start_response('404', [('Content-Type', 'text/plain')])
 			return ["This url does not belong to the app.".encode()]
-# app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=entry_point)
+
+# only apply prefix middleware if we actually need it
+if entry_point.strip('/') != '':
+	app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=entry_point)
 
 # HTTPS fix
 if not os.environ.get('OAUTHLIB_INSECURE_TRANSPORT'):
@@ -165,7 +173,7 @@ def load_user(user_id):
 	return User.query.get(int(user_id))
 
 # Setup SQLAlchemy backend
-blueprint.backend = SQLAlchemyBackend(OAuth, db.session, user=current_user)
+blueprint.backend = SQLAlchemyStorage(OAuth, db.session, user=current_user)
 
 # create/login local user on successful OAuth login
 @oauth_authorized.connect_via(blueprint)
@@ -1101,21 +1109,14 @@ def launch_alignment_api():
 		# Add species
 		sample['outname'] = alignment_uid+'-'+sample['outname']+'-'+alignment_settings['organism'].replace('human', 'hs').replace('mouse', 'mm')
 
-		# Get jobs
-		req =  urllib.request.Request('https://amp.pharm.mssm.edu/cloudalignment/progress?username={ELYSIUM_USERNAME}&password={ELYSIUM_PASSWORD}'.format(**os.environ))
-		job_dataframe = pd.DataFrame(json.loads(urllib.request.urlopen(req).read().decode('utf-8'))).T[['outname', 'status']]
-
-		# Check if alignment hasn't been submitted yet (fix to add support for different organisms)
-		if sample['outname'] not in job_dataframe['outname'].tolist():
-
-			# Get URL parameters
-			params = '&'.join(['{key}={value}'.format(**locals()) for key, value in sample.items() if value])+'&organism='+alignment_settings['organism']
-			url = "https://amp.pharm.mssm.edu/cloudalignment/createjob?username={ELYSIUM_USERNAME}&password={ELYSIUM_PASSWORD}&".format(**os.environ)+params
-			# Launch alignment jobs
-			req =  urllib.request.Request(urllib.parse.quote(url, safe=':/&.?='))
-			# req =  urllib.request.Request(url.replace(' ', '%20'))
-			resp = urllib.request.urlopen(req).read().decode('utf-8')
-			# print(resp)
+		# Get URL parameters
+		params = '&'.join(['{key}={value}'.format(**locals()) for key, value in sample.items() if value])+'&organism='+alignment_settings['organism']
+		url = "https://amp.pharm.mssm.edu/cloudalignment/createjob?username={ELYSIUM_USERNAME}&password={ELYSIUM_PASSWORD}&".format(**os.environ)+params
+		# Launch alignment jobs
+		req =  urllib.request.Request(urllib.parse.quote(url, safe=':/&.?='))
+		# req =  urllib.request.Request(url.replace(' ', '%20'))
+		resp = urllib.request.urlopen(req).read().decode('utf-8')
+		# print(resp)
 
 	# Upload to database
 	RM.uploadAlignmentJob(alignment_uid=alignment_uid, upload_uid=alignment_settings['upload_uid'], paired=alignment_settings.get('sequencing-type')=='paired-end', species=alignment_settings['organism'].replace('human', 'hs').replace('mouse', 'mm'), alignment_title=alignment_settings.get('alignment_title', 'FASTQ Alignment'), session=Session(), tables=tables)
