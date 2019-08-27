@@ -3,11 +3,24 @@
 root=/biojupies
 user=r
 log=$root/error.log
+sslroot=/ssl
+servername=biojupies.cloud
 
 function setup {
 
 echo "Creating user..." >> $log
 adduser --disabled-password --gecos '' $user >> $log
+
+if [ ! -z "${SSL_CERTIFICATE}" -a ! -z "${SSL_CERTIFICATE_KEY}" ]; then
+    echo "Writing SSL Keys..." >> $log
+    mkdir -p "${sslroot}"
+    echo "${SSL_CERTIFICATE}" | sed 's/;/\n/g' > "${sslroot}/cert.crt"
+    echo "${SSL_CERTIFICATE_KEY}" | sed 's/;/\n/g' > "${sslroot}/cert.key"
+    export SSL=1
+else
+    echo "WARN: SSL_CERTIFICATE and SSL_CERTIFICATE_KEY were not provided; will use http"
+    export SSL=
+fi
 
 echo "Writing wsgi.ini..." >> $log
 cat << EOF | tee -a $root/wsgi.ini >> $log
@@ -28,32 +41,72 @@ daemonize = $log
 EOF
 
 echo "Writing nginx.conf..." >> $log
-cat << EOF | tee -a $root/nginx.conf >> $log
+cat << EOF | tee $root/nginx.conf >> $log
 user $user $user;
 
 worker_processes 1;
 
 events {
-	worker_connections 1024;
+        worker_connections 1024;
 }
 
 http {
     access_log $log;
-	error_log $log;
+        error_log $log;
 
-	gzip              on;
-	gzip_http_version 1.0;
-	gzip_proxied      any;
-	gzip_min_length   500;
-	gzip_disable      "MSIE [1-6]\.";
-	gzip_types        text/plain text/xml text/css
-					  text/comma-separated-values
-					  text/javascript
-					  application/x-javascript
-					  application/atom+xml;
+        gzip              on;
+        gzip_http_version 1.0;
+        gzip_proxied      any;
+        gzip_min_length   500;
+        gzip_disable      "MSIE [1-6]\.";
+        gzip_types        text/plain text/xml text/css
+                                          text/comma-separated-values
+                                          text/javascript
+                                          application/x-javascript
+                                          application/atom+xml;
+EOF
 
+if [ -z "${SSL}" ]; then
+
+cat << EOF | tee -a $root/nginx.conf >> $log
     server {
         listen 80;
+        charset utf-8;
+        client_max_body_size 30M;
+        sendfile on;
+        keepalive_timeout 0;
+        large_client_header_buffers 8 32k;
+        location /static  {
+            alias $root/app/static;
+        }
+        location / {
+            include            /etc/nginx/uwsgi_params;
+            uwsgi_pass         127.0.0.1:8080;
+            proxy_redirect     off;
+            proxy_set_header   Host \$host;
+            proxy_set_header   X-Real-IP \$remote_addr;
+            proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host \$server_name;
+        }
+    }
+}
+EOF
+
+else
+
+cat << EOF | tee -a $root/nginx.conf >> $log
+
+    server {
+        listen 443 default ssl;
+
+        # ssl on;
+        ssl_certificate $sslroot/cert.crt;
+        ssl_certificate_key $sslroot/cert.key;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_prefer_server_ciphers on;
+        ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+        include /etc/nginx/mime.types;
         charset utf-8;
         client_max_body_size 30M;
         sendfile on;
@@ -76,6 +129,8 @@ http {
     }
 }
 EOF
+
+fi
 
 echo "Starting uwsgi..." >> $log
 uwsgi --ini $root/wsgi.ini >> $log
