@@ -64,11 +64,6 @@ http {
                                           text/javascript
                                           application/x-javascript
                                           application/atom+xml;
-EOF
-
-if [ -z "${SSL}" ]; then
-
-cat << EOF | tee -a $root/nginx.conf >> $log
     server {
         listen 80;
         charset utf-8;
@@ -89,10 +84,9 @@ cat << EOF | tee -a $root/nginx.conf >> $log
             proxy_set_header   X-Forwarded-Host \$server_name;
         }
     }
-}
 EOF
 
-else
+if [ ! -z "${SSL}" ]; then
 
 cat << EOF | tee -a $root/nginx.conf >> $log
 
@@ -127,10 +121,13 @@ cat << EOF | tee -a $root/nginx.conf >> $log
             proxy_set_header   X-Forwarded-Host \$server_name;
         }
     }
-}
 EOF
 
 fi
+
+cat << EOF | tee -a $root/nginx.conf >> $log
+}
+EOF
 
 echo "Starting uwsgi..." >> $log
 uwsgi --ini $root/wsgi.ini >> $log
